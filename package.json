@@ -1,0 +1,19 @@
+{
+  "name": "courses-aalto-better-filters",
+  "module": "better-filters.ts",
+  "type": "module",
+  "description": "A browser extension to improve the UX of Aalto University course search.",
+  "repository": "https://github.com/SirLarion/courses-aalto-better-filters",
+  "author": "Miska Tammenpää <miska@tammenpaa.com> (https://miska.tammenpaa.com)",
+  "license": "MIT",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "web-ext": "^7.8.0",
+    "webextension-polyfill-ts": "^0.26.0"
+  }
+}

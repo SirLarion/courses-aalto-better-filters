@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "courses-aalto-better-filters",
+  "version": "1.0",
+  "developer": {
+    "name": "Miska Tammenpää",
+    "url": "https://github.com/SirLarion"
+  },
+  "description": "A browser extension to improve the filtering system in courses.aalto.fi.",
+  "icons": {
+    "48": "bdollar.svg",
+    "96": "bdollar.svg"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://courses.aalto.fi/s/course/*"],
+      "js": ["better-filters.js"]
+    }
+  ]
+}
