@@ -6,6 +6,11 @@
   "repository": "https://github.com/SirLarion/courses-aalto-better-filters",
   "author": "Miska Tammenpää <miska@tammenpaa.com> (https://miska.tammenpaa.com)",
   "license": "MIT",
+  "scripts": {
+    "client": "web-ext run --firefox=/usr/bin/firefox-developer-edition",
+    "bg": "bun build filter-request.ts --watch --outdir build --outfile filter-request.js",
+    "content": "bun build better-filters.ts --watch --outdir build --outfile better-filters.js"
+  },
   "devDependencies": {
     "bun-types": "latest"
   },

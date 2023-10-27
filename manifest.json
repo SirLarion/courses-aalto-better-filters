@@ -11,10 +11,27 @@
     "48": "bdollar.svg",
     "96": "bdollar.svg"
   },
+  "permissions": [
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "webRequestFilterResponse"
+  ],
+  "host_permissions": ["https://courses.aalto.fi/s/sfsites/*"],
+  "background": {
+    "scripts": ["build/filter-request.js"]
+  },
   "content_scripts": [
     {
       "matches": ["https://courses.aalto.fi/s/course/*"],
-      "js": ["better-filters.js"]
+      "js": ["build/better-filters.js"],
+      "css": ["filters.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["plus.svg", "minus.svg"],
+      "matches": ["https://courses.aalto.fi/s/course/*"]
     }
   ]
 }
