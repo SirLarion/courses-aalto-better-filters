@@ -1,6 +1,22 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
+//
+// Copyright (C) <2023> Miska Tammenpää <miska@tammenpaa.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import { browser } from 'webextension-polyfill-ts';
 
 const FILTER_LABELS = ['Course prefix'] as const;
@@ -45,19 +61,45 @@ const set = (obj: Record<string, any>) => browser.storage.local.set(obj);
 
 const el = (tag: string) => document.createElement(tag);
 
-const elOrNull = (elements: HTMLCollectionOf<Element>) => {
-  if (elements.length > 0) {
-    return elements[0];
-  }
-  return null;
-};
-
 const removePrefix = (filterValue: string, prefix: string) =>
   filterValue
     .split(',')
     .filter(p => p.length > 0 && p !== prefix)
     .join(',');
 
+//
+// Query the document for the wrapper element of the existing filters.
+// This happens on load so we need to wait for the DOM to be constructed
+//
+const getFilterContainer = () =>
+  new Promise<Element>(async (res, rej) => {
+    let container = document
+      .getElementsByClassName('filters-container')
+      .item(0);
+
+    if (container === null) {
+      let i = 0;
+      while (i < 100) {
+        container = document
+          .getElementsByClassName('filters-container')
+          .item(0);
+
+        await new Promise(r => setTimeout(r, 5));
+
+        if (container !== null) {
+          res(container);
+        }
+        i++;
+      }
+    } else {
+      res(container);
+    }
+    rej();
+  });
+
+//
+// Create <ul> element of multiselect togglable filter options
+//
 const createMultiselectList = async (options: readonly string[]) => {
   const ul = el('ul');
   ul.className = 'multiselect';
@@ -113,6 +155,7 @@ const createMultiselectList = async (options: readonly string[]) => {
         span.appendChild(plus);
         span.style.backgroundColor = '#202020';
       }
+
       li.dispatchEvent(storageChangeEvent);
     });
 
@@ -170,10 +213,8 @@ class Filter {
   }
 }
 
-const init = async () => {
-  const filterContainer = elOrNull(
-    document.getElementsByClassName('filters-container')
-  );
+// ---------------------
+const init = () => {
   const reloadButton = el('button');
   reloadButton.id = 'reloadFiltersButton';
   reloadButton.className = 'reload';
@@ -181,25 +222,35 @@ const init = async () => {
   reloadButton.addEventListener('click', () => window.location.reload());
 
   if (!document.getElementById('reloadFiltersButton')) {
-    document.body.appendChild(reloadButton);
+    setTimeout(() => {
+      document.body.appendChild(reloadButton);
+    }, 100);
   }
 
-  if (filterContainer !== null) {
-    filterContainer.addEventListener('storageChanged', async () => {
-      reloadButton.style.display = 'initial';
-    });
-
-    const filters = await Promise.all(
-      FILTER_LABELS.map(
-        async label =>
-          new Filter(label, await configByFilter[label].initChild())
+  Promise.all(
+    FILTER_LABELS.map(
+      async label => new Filter(label, await configByFilter[label].initChild())
+    )
+  )
+    .then(async filters => {
+      const filterContainer = await getFilterContainer();
+      console.log(filterContainer);
+      filters.map(async ({ node }) => {
+        if (!document.getElementById(node.id)) filterContainer.prepend(node);
+      });
+    })
+    .finally(async () =>
+      (await getFilterContainer()).addEventListener(
+        'storageChanged',
+        async () => {
+          reloadButton.style.display = 'initial';
+        }
       )
     );
-
-    filters.forEach(({ node }) => {
-      if (!document.getElementById(node.id)) filterContainer.prepend(node);
-    });
-  }
 };
 
-setTimeout(async () => await init(), 2000);
+browser.runtime.onMessage.addListener(msg => {
+  if (msg === 'loadComplete') {
+    init();
+  }
+});

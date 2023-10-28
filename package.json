@@ -5,11 +5,12 @@
   "description": "A browser extension to improve the UX of Aalto University course search.",
   "repository": "https://github.com/SirLarion/courses-aalto-better-filters",
   "author": "Miska Tammenpää <miska@tammenpaa.com> (https://miska.tammenpaa.com)",
-  "license": "MIT",
+  "license": "GPLv3",
   "scripts": {
     "client": "web-ext run --firefox=/usr/bin/firefox-developer-edition",
-    "bg": "bun build filter-request.ts --watch --outdir build --outfile filter-request.js",
-    "content": "bun build better-filters.ts --watch --outdir build --outfile better-filters.js"
+    "bg": "bun build filter-request.ts --outdir build --outfile filter-request.js",
+    "content": "bun build better-filters.ts --outdir build --outfile better-filters.js",
+    "build": "bun run bg && bun run content"
   },
   "devDependencies": {
     "bun-types": "latest"

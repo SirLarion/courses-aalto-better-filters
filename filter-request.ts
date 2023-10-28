@@ -1,4 +1,23 @@
+//
+// Copyright (C) <2023> Miska Tammenpää <miska@tammenpaa.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import { WebRequest, browser } from 'webextension-polyfill-ts';
+
+const UI_REQUEST_URL =
+  'https://courses.aalto.fi/s/sfsites/aura*ui-comm-runtime-components-aura-components-siteforce-qb*';
 
 type TRawCourseObject = {
   hed__Course__r: {
@@ -12,6 +31,9 @@ type TDetails = WebRequest.OnBeforeRequestDetailsType;
 
 const get = async (key: string | string[]) =>
   await browser.storage.local.get(key);
+
+const set = async (obj: Record<string, any>) =>
+  await browser.storage.local.set(obj);
 
 const getCourseCode = (courseObj: TRawCourseObject) =>
   courseObj.hed__Course__r.CourseCode__c;
@@ -57,18 +79,21 @@ const reqListener = async ({ requestId }: TDetails) => {
       let res = JSON.parse(resStr);
       const [coursesAction, ...restActions] = res.actions;
       const data = coursesAction.returnValue.returnValue;
-      const filteredAction = {
-        ...coursesAction,
-        returnValue: {
-          ...coursesAction.returnValue,
+
+      if (data.courses) {
+        const filteredAction = {
+          ...coursesAction,
           returnValue: {
-            ...data,
-            courses: await filterCourses(data.courses),
+            ...coursesAction.returnValue,
+            returnValue: {
+              ...data,
+              courses: await filterCourses(data.courses),
+            },
           },
-        },
-      };
-      res = { ...res, actions: [filteredAction, ...restActions] };
-      resStr = JSON.stringify(res);
+        };
+        res = { ...res, actions: [filteredAction, ...restActions] };
+        resStr = JSON.stringify(res);
+      }
     } finally {
       stream.write(encoder.encode(resStr));
       stream.close();
@@ -77,11 +102,29 @@ const reqListener = async ({ requestId }: TDetails) => {
   return { cancel: false };
 };
 
-// Listen to (seemingly) the specific fetch that gets the course listing
+// Listen to (seemingly) the specific fetch that gets the course data
 browser.webRequest.onBeforeRequest.addListener(
   reqListener,
   {
     urls: ['https://courses.aalto.fi/s/sfsites/aura*aura.ApexAction.execute*'],
   },
   ['blocking']
+);
+
+browser.webRequest.onCompleted.addListener(
+  () => {
+    const interval = setInterval(() => {
+      browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+        console.log(tabs);
+        if (tabs.length > 0 && tabs[0].id !== undefined) {
+          browser.tabs
+            .sendMessage(tabs[0].id, 'loadComplete')
+            .then(() => clearInterval(interval));
+        }
+      });
+    }, 20);
+  },
+  {
+    urls: [UI_REQUEST_URL],
+  }
 );
