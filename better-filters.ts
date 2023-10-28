@@ -222,10 +222,7 @@ const init = () => {
   reloadButton.addEventListener('click', () => window.location.reload());
 
   if (!document.getElementById('reloadFiltersButton')) {
-    console.log('adding button');
-    setTimeout(() => {
-      document.body.appendChild(reloadButton);
-    }, 100);
+    document.body.appendChild(reloadButton);
   }
 
   Promise.all(
