@@ -194,7 +194,7 @@ const createFilterBox = (label: string) => (child: HTMLElement) => {
 
   return wrapper;
 };
-
+2;
 const configByFilter: Record<TFilterName, TFilterConfig> = {
   ['Course prefix']: {
     initialValue: '',
@@ -222,6 +222,7 @@ const init = () => {
   reloadButton.addEventListener('click', () => window.location.reload());
 
   if (!document.getElementById('reloadFiltersButton')) {
+    console.log('adding button');
     setTimeout(() => {
       document.body.appendChild(reloadButton);
     }, 100);
@@ -234,7 +235,6 @@ const init = () => {
   )
     .then(async filters => {
       const filterContainer = await getFilterContainer();
-      console.log(filterContainer);
       filters.map(async ({ node }) => {
         if (!document.getElementById(node.id)) filterContainer.prepend(node);
       });

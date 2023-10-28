@@ -1,6 +1,9 @@
 # courses-aalto-better-filters
 
-[courses.aalto.fi](https://courses.aalto.fi/s/course/hed__Course__c/Default?language=en_US) has garbage-tier UX. This is a hack to try and improve specifically the
+<img src="preview.gif" alt="Preview GIF displaying the extension in use" />
+
+[courses.aalto.fi](https://courses.aalto.fi/s/course/hed__Course__c/Default?language=en_US)
+has garbage-tier UX. This is a hack to try and improve specifically the
 filtration of the courses.
 
 ### Features
@@ -19,7 +22,7 @@ filtration of the courses.
 
 Get familiarized with [the WebExtensions docs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
 
-The packages is configured to use [Bun](https://bun.sh), but you should be able
+The package is configured to use [Bun](https://bun.sh), but you should be able
 to easily modify it to use your preferred package manager.
 
 ```

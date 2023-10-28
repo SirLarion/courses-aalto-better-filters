@@ -32,9 +32,6 @@ type TDetails = WebRequest.OnBeforeRequestDetailsType;
 const get = async (key: string | string[]) =>
   await browser.storage.local.get(key);
 
-const set = async (obj: Record<string, any>) =>
-  await browser.storage.local.set(obj);
-
 const getCourseCode = (courseObj: TRawCourseObject) =>
   courseObj.hed__Course__r.CourseCode__c;
 
@@ -115,14 +112,13 @@ browser.webRequest.onCompleted.addListener(
   () => {
     const interval = setInterval(() => {
       browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
-        console.log(tabs);
         if (tabs.length > 0 && tabs[0].id !== undefined) {
           browser.tabs
             .sendMessage(tabs[0].id, 'loadComplete')
             .then(() => clearInterval(interval));
         }
       });
-    }, 20);
+    }, 100);
   },
   {
     urls: [UI_REQUEST_URL],

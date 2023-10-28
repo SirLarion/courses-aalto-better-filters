@@ -30,7 +30,7 @@
   "web_accessible_resources": [
     {
       "resources": ["plus.svg", "minus.svg"],
-      "matches": ["https://courses.aalto.fi/s/course/hed__Course__c/*"]
+      "matches": ["https://courses.aalto.fi/s/*"]
     }
   ]
 }
