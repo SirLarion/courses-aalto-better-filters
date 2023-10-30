@@ -19,6 +19,16 @@ import { WebRequest, browser } from 'webextension-polyfill-ts';
 const UI_REQUEST_URL =
   'https://courses.aalto.fi/s/sfsites/aura*ui-comm-runtime-components-aura-components-siteforce-qb*';
 
+const COURSE_PERIOD_START_BASE: Record<string, { start: string; end: string }> =
+  {
+    I: { start: '08-25', end: '10-15' },
+    II: { start: '10-15', end: '01-01' },
+    III: { start: '01-01', end: '02-20' },
+    IV: { start: '02-20', end: '04-15' },
+    V: { start: '04-15', end: '05-25' },
+    Summer: { start: '05-25', end: '08-25' },
+  };
+
 type TRawCourseObject = {
   hed__Course__r: {
     CourseCode__c: string;
@@ -35,27 +45,48 @@ const get = async (key: string | string[]) =>
 const getCourseCode = (courseObj: TRawCourseObject) =>
   courseObj.hed__Course__r.CourseCode__c;
 
-const isValidPrefixes = (prefixes: string[]) =>
-  prefixes.length > 0 && prefixes.every(prefix => prefix.length >= 2);
+const getStartsInPeriod = (period: string, courseObj: TRawCourseObject) => {
+  const { start, end } = COURSE_PERIOD_START_BASE[period];
+  const now = new Date();
+  const yearNow = now.getFullYear();
+  const accountPrevYear = now.getMonth() < 5;
+  const [y, m, d] = courseObj.hed__Start_Date__c.split('-');
+
+  return true;
+};
+
+const isValidFilterDef = (filterDef: string[]) =>
+  filterDef.length > 0 && filterDef.every(filter => filter.length >= 1);
+
+const getFilter = async (filterName: string) =>
+  ((await get(filterName))[filterName] || '').split(',');
 
 const filterCourses = async (courses: TRawCourseObject[]) => {
   let arr = courses;
-  const posPrefixes: string[] = ((await get('prefixes')).prefixes || '').split(
-    ','
-  );
-  const negPrefixes: string[] = (
-    (await get('not-prefixes'))['not-prefixes'] || ''
-  ).split(',');
+  const posPrefixes: string[] = await getFilter('prefixes');
+  const negPrefixes: string[] = await getFilter('not-prefixes');
+  const posPeriods: string[] = await getFilter('periods');
+  const negPeriods: string[] = await getFilter('not-periods');
 
-  if (isValidPrefixes(posPrefixes)) {
+  if (isValidFilterDef(posPrefixes)) {
     arr = arr.filter(course =>
       posPrefixes.find(prefix => getCourseCode(course)?.startsWith(prefix))
     );
   }
-  if (!isValidPrefixes(posPrefixes) && isValidPrefixes(negPrefixes)) {
+  if (!isValidFilterDef(posPrefixes) && isValidFilterDef(negPrefixes)) {
     arr = arr.filter(
       course =>
         !negPrefixes.find(prefix => getCourseCode(course)?.startsWith(prefix))
+    );
+  }
+  if (isValidFilterDef(posPeriods)) {
+    arr = arr.filter(course =>
+      posPeriods.find(period => getStartsInPeriod(period, course))
+    );
+  }
+  if (!isValidFilterDef(posPeriods) && isValidFilterDef(negPeriods)) {
+    arr = arr.filter(
+      course => !negPeriods.find(period => getStartsInPeriod(period, course))
     );
   }
   return arr;

@@ -19,7 +19,9 @@
 
 import { browser } from 'webextension-polyfill-ts';
 
-const FILTER_LABELS = ['Course prefix'] as const;
+const FILTER_LABELS = ['Period', 'Course prefix'] as const;
+
+const PERIOD_VALUES = ['I', 'II', 'III', 'IV', 'V', 'Summer'] as const;
 
 const PREFIX_VALUES = [
   'ARK',
@@ -100,12 +102,16 @@ const getFilterContainer = () =>
 //
 // Create <ul> element of multiselect togglable filter options
 //
-const createMultiselectList = async (options: readonly string[]) => {
+const createMultiselectList = async (
+  filterKey: string,
+  options: readonly string[]
+) => {
+  const negFilterKey = `not-${filterKey}`;
   const ul = el('ul');
   ul.className = 'multiselect';
-  const { prefixes: initPos, 'not-prefixes': initNeg } = await get([
-    'prefixes',
-    'not-prefixes',
+  const { [filterKey]: initPos, [negFilterKey]: initNeg } = await get([
+    filterKey,
+    negFilterKey,
   ]);
 
   options.forEach(option => {
@@ -133,25 +139,25 @@ const createMultiselectList = async (options: readonly string[]) => {
     }
 
     li.addEventListener('click', async () => {
-      const { prefixes: pos, 'not-prefixes': neg } = await get([
-        'prefixes',
-        'not-prefixes',
+      const { [filterKey]: pos, [negFilterKey]: neg } = await get([
+        filterKey,
+        negFilterKey,
       ]);
 
       if (pos?.includes(option)) {
         set({
-          'not-prefixes': `${neg ? neg + ',' : ''}${option}`,
-          prefixes: removePrefix(pos, option),
+          [negFilterKey]: `${neg ? neg + ',' : ''}${option}`,
+          [filterKey]: removePrefix(pos, option),
         });
         span.removeChild(plus);
         span.appendChild(minus);
         span.style.backgroundColor = '#202020';
       } else if (neg?.includes(option)) {
-        set({ 'not-prefixes': removePrefix(neg, option) });
+        set({ [negFilterKey]: removePrefix(neg, option) });
         span.removeChild(minus);
         span.style.backgroundColor = 'white';
       } else {
-        set({ prefixes: `${pos ? pos + ',' : ''}${option}` });
+        set({ [filterKey]: `${pos ? pos + ',' : ''}${option}` });
         span.appendChild(plus);
         span.style.backgroundColor = '#202020';
       }
@@ -198,7 +204,11 @@ const createFilterBox = (label: string) => (child: HTMLElement) => {
 const configByFilter: Record<TFilterName, TFilterConfig> = {
   ['Course prefix']: {
     initialValue: '',
-    initChild: () => createMultiselectList(PREFIX_VALUES),
+    initChild: () => createMultiselectList('prefixes', PREFIX_VALUES),
+  },
+  ['Period']: {
+    initialValue: '',
+    initChild: () => createMultiselectList('periods', PERIOD_VALUES),
   },
 };
 
@@ -231,6 +241,7 @@ const init = () => {
     )
   )
     .then(async filters => {
+      console.log(filters);
       const filterContainer = await getFilterContainer();
       filters.map(async ({ node }) => {
         if (!document.getElementById(node.id)) filterContainer.prepend(node);
