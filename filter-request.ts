@@ -49,10 +49,25 @@ const getStartsInPeriod = (period: string, courseObj: TRawCourseObject) => {
   const { start, end } = COURSE_PERIOD_START_BASE[period];
   const now = new Date();
   const yearNow = now.getFullYear();
-  const accountPrevYear = now.getMonth() < 5;
-  const [y, m, d] = courseObj.hed__Start_Date__c.split('-');
+  const yearDelta = (() => {
+    if (['I', 'II'].includes(period) && now.getMonth() < 5) {
+      return -1;
+    }
+    if (['III', 'IV', 'V', 'Summer'].includes(period) && now.getMonth() >= 8) {
+      return 1;
+    }
+    return 0;
+  })();
 
-  return true;
+  const courseStart = new Date(courseObj.hed__Start_Date__c).getTime();
+  const periodStart = new Date(`${yearNow + yearDelta}-${start}`).getTime();
+  const periodEnd = new Date(`${yearNow + yearDelta}-${end}`).getTime();
+
+  if (courseStart >= periodStart && courseStart < periodEnd) {
+    return true;
+  }
+
+  return false;
 };
 
 const isValidFilterDef = (filterDef: string[]) =>
