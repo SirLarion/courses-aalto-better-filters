@@ -99,6 +99,21 @@ const getFilterContainer = () =>
     rej();
   });
 
+const removeDefaultPeriodsFilter = () => {
+  const collection = document.getElementsByTagName('h3');
+  console.log(collection);
+  let i = 0;
+  let found = false;
+  while (!found && collection.item(i) !== null) {
+    console.log(collection.item(i)?.textContent);
+    if (collection.item(i)?.textContent === 'Periods') {
+      found = true;
+      collection.item(i)?.parentElement?.parentElement?.parentElement?.remove();
+    }
+    i++;
+  }
+};
+
 //
 // Create <ul> element of multiselect togglable filter options
 //
@@ -241,20 +256,20 @@ const init = () => {
     )
   )
     .then(async filters => {
-      console.log(filters);
       const filterContainer = await getFilterContainer();
       filters.map(async ({ node }) => {
         if (!document.getElementById(node.id)) filterContainer.prepend(node);
       });
     })
-    .finally(async () =>
+    .finally(async () => {
       (await getFilterContainer()).addEventListener(
         'storageChanged',
         async () => {
           reloadButton.style.display = 'initial';
         }
-      )
-    );
+      );
+      setTimeout(() => removeDefaultPeriodsFilter(), 2000);
+    });
 };
 
 browser.runtime.onMessage.addListener(msg => {
