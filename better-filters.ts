@@ -21,6 +21,13 @@ import { browser } from 'webextension-polyfill-ts';
 
 const FILTER_LABELS = ['Period', 'Course prefix'] as const;
 
+const FILTER_KEYS = [
+  'prefixes',
+  'not-prefixes',
+  'periods',
+  'not-periods',
+] as const;
+
 const PERIOD_VALUES = ['I', 'II', 'III', 'IV', 'V', 'Summer'] as const;
 
 const PREFIX_VALUES = [
@@ -45,8 +52,6 @@ const PREFIX_VALUES = [
   'TU',
   'JOIN',
 ] as const;
-
-const storageChangeEvent = new CustomEvent('storageChanged', { bubbles: true });
 
 const plusIcon = browser.runtime.getURL('plus.svg');
 const minusIcon = browser.runtime.getURL('minus.svg');
@@ -101,11 +106,9 @@ const getFilterContainer = () =>
 
 const removeDefaultPeriodsFilter = () => {
   const collection = document.getElementsByTagName('h3');
-  console.log(collection);
   let i = 0;
   let found = false;
   while (!found && collection.item(i) !== null) {
-    console.log(collection.item(i)?.textContent);
     if (collection.item(i)?.textContent === 'Periods') {
       found = true;
       collection.item(i)?.parentElement?.parentElement?.parentElement?.remove();
@@ -176,8 +179,6 @@ const createMultiselectList = async (
         span.appendChild(plus);
         span.style.backgroundColor = '#202020';
       }
-
-      li.dispatchEvent(storageChangeEvent);
     });
 
     input.setAttribute('c-aaltoinput_radiolist', '');
@@ -250,26 +251,26 @@ const init = () => {
     document.body.appendChild(reloadButton);
   }
 
+  browser.storage.onChanged.addListener(changes => {
+    if (FILTER_KEYS.some(key => changes[key] !== undefined)) {
+      reloadButton.style.display = 'initial';
+    }
+    if (changes.coursesLoaded?.newValue) {
+      removeDefaultPeriodsFilter();
+      set({ coursesLoaded: false });
+    }
+  });
+
   Promise.all(
     FILTER_LABELS.map(
       async label => new Filter(label, await configByFilter[label].initChild())
     )
-  )
-    .then(async filters => {
-      const filterContainer = await getFilterContainer();
-      filters.map(async ({ node }) => {
-        if (!document.getElementById(node.id)) filterContainer.prepend(node);
-      });
-    })
-    .finally(async () => {
-      (await getFilterContainer()).addEventListener(
-        'storageChanged',
-        async () => {
-          reloadButton.style.display = 'initial';
-        }
-      );
-      setTimeout(() => removeDefaultPeriodsFilter(), 2000);
+  ).then(async filters => {
+    const filterContainer = await getFilterContainer();
+    filters.map(async ({ node }) => {
+      if (!document.getElementById(node.id)) filterContainer.prepend(node);
     });
+  });
 };
 
 browser.runtime.onMessage.addListener(msg => {

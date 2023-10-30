@@ -39,8 +39,9 @@ type TRawCourseObject = {
 
 type TDetails = WebRequest.OnBeforeRequestDetailsType;
 
-const get = async (key: string | string[]) =>
-  await browser.storage.local.get(key);
+const get = (key: string | string[]) => browser.storage.local.get(key);
+
+const set = (obj: Record<string, any>) => browser.storage.local.set(obj);
 
 const getCourseCode = (courseObj: TRawCourseObject) =>
   courseObj.hed__Course__r.CourseCode__c;
@@ -63,11 +64,7 @@ const getStartsInPeriod = (period: string, courseObj: TRawCourseObject) => {
   const periodStart = new Date(`${yearNow + yearDelta}-${start}`).getTime();
   const periodEnd = new Date(`${yearNow + yearDelta}-${end}`).getTime();
 
-  if (courseStart >= periodStart && courseStart < periodEnd) {
-    return true;
-  }
-
-  return false;
+  return courseStart >= periodStart && courseStart < periodEnd;
 };
 
 const isValidFilterDef = (filterDef: string[]) =>
@@ -140,6 +137,7 @@ const reqListener = async ({ requestId }: TDetails) => {
     } finally {
       stream.write(encoder.encode(resStr));
       stream.close();
+      await set({ coursesLoaded: true });
     }
   };
   return { cancel: false };
