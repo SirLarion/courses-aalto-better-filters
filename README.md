@@ -22,20 +22,30 @@ filtration of the courses.
   period each course is held in. This extension adds that information to the
   course listing.
 
+### Building
+
+The `build` script simply calls TSC so you should be able to run it with any
+npm-like software.
+
+```
+npm install
+npm run build
+```
+
 ### Running locally
 
 Get familiarized with [the WebExtensions docs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
 
-The package is configured to use [Bun](https://bun.sh), but you should be able
-to easily modify it to use your preferred package manager.
-
 ```
-bun i
-bun run build
-bun run client
+npm run dev
 ```
 
-`bun run client` uses
-[web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
+to build compile JS files and watch for modifications.
+
+```
+npm run client
+```
+
+to run [web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
 with Firefox developer edition. You can also run the extension in different ways as shown in [this
 guide](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension).

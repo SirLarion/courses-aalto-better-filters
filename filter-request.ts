@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { WebRequest, browser } from 'webextension-polyfill-ts';
+import browser, { WebRequest } from 'webextension-polyfill';
 
 const COURSES_AALTO_URL =
   'https://courses.aalto.fi/s/course/hed__Course__c/Default';

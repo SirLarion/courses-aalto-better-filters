@@ -18,7 +18,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 
 const FILTER_KEYS = ['periods', 'prefixes'] as const;
 

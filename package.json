@@ -8,18 +8,14 @@
   "license": "GPLv3",
   "scripts": {
     "client": "web-ext run --firefox=/usr/bin/firefox-developer-edition",
-    "bg": "bun build filter-request.ts --outdir build --outfile filter-request.js",
-    "content": "bun build better-filters.ts --outdir build --outfile better-filters.js",
-    "build": "bun run bg && bun run content"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -r courses-aalto-better-filters.zip build filters.css manifest.json LICENSE *.svg"
   },
   "devDependencies": {
-    "bun-types": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
+    "@types/webextension-polyfill": "^0.10.5",
+    "typescript": "^5.2.2",
     "web-ext": "^7.8.0",
-    "webextension-polyfill-ts": "^0.26.0"
+    "webextension-polyfill": "^0.10.0"
   }
 }

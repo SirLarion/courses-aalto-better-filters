@@ -8,6 +8,11 @@
     "48": "bdollar.svg",
     "96": "bdollar.svg"
   },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{2cf32227-6fd3-43a1-91d2-d2d0c90b9f56}"
+    }
+  },
   "permissions": [
     "storage",
     "activeTab",
