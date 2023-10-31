@@ -13,10 +13,14 @@ filtration of the courses.
 
 - _Filtering by period._ Filter by which period the course starts in.
 
-- _Positive & negative filters_. Positive filters display only courses matching
+- _Positive & negative filters._ Positive filters display only courses matching
   the selected filter. Negative filters display courses that **don't** match the
   filter. Positives override negatives so negatives will only work if only
   negative filters of a certain filter type are selected.
+
+- _Displaying period data in courses._ courses.aalto does not display which
+  period each course is held in. This extension adds that information to the
+  course listing.
 
 ### Running locally
 

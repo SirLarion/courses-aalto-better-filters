@@ -4,6 +4,11 @@
   grid-template-columns: auto auto;
 }
 
+.filter-prefixes {
+  max-height: 15rem;
+  overflow-y: scroll;
+}
+
 .checkbox {
   display: flex;
   align-items: center;
@@ -52,4 +57,8 @@ button.reload {
 button.reload:hover {
   background-color: #202020;
   color: white;
+}
+
+span.period-tag {
+  font-size: 1rem;
 }

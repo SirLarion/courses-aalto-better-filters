@@ -16,49 +16,61 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 
 import { browser } from 'webextension-polyfill-ts';
 
-const FILTER_LABELS = ['Period', 'Course prefix'] as const;
-
-const FILTER_KEYS = [
-  'prefixes',
-  'not-prefixes',
-  'periods',
-  'not-periods',
-] as const;
+const FILTER_KEYS = ['periods', 'prefixes'] as const;
 
 const PERIOD_VALUES = ['I', 'II', 'III', 'IV', 'V', 'Summer'] as const;
 
+// Ordered by the amount of courses that there are under each prefix
 const PREFIX_VALUES = [
-  'ARK',
-  'ARTS',
-  'ARTX',
-  'AXM',
-  'BIZ',
-  'CHEM',
-  'CS',
-  'ECON',
   'ELEC',
+  'CHEM',
   'ELO',
-  'FIN',
   'LC',
-  'MARK',
-  'MLI',
-  'MNGT',
+  'AXM',
+  'CS',
+  'ARK',
   'MUO',
-  'PHYS',
-  'SCI',
   'TU',
+  'MS',
+  'ARTS',
+  'MEC',
+  'MLI',
+  'PHYS',
+  'MNGT',
+  'AAE',
+  'CIV',
+  'MAR',
+  'ABL',
+  'ECON',
+  'NBE',
+  'ARTX',
+  'BIZ',
+  'ISM',
+  'ENG',
+  'GEO',
+  'WAT',
+  'GIS',
+  'REC',
+  'SCI',
   'JOIN',
+  'COE',
+  'KEY',
+  'FIN',
+  'KIG',
+  'KON',
+  'MARK',
 ] as const;
 
 const plusIcon = browser.runtime.getURL('plus.svg');
 const minusIcon = browser.runtime.getURL('minus.svg');
 
-type TFilterName = (typeof FILTER_LABELS)[number];
+type TFilterKey = (typeof FILTER_KEYS)[number];
 type TFilterConfig = {
-  initialValue: string;
+  label: string;
   initChild: () => Promise<HTMLElement>;
 };
 
@@ -68,11 +80,16 @@ const set = (obj: Record<string, any>) => browser.storage.local.set(obj);
 
 const el = (tag: string) => document.createElement(tag);
 
-const removePrefix = (filterValue: string, prefix: string) =>
-  filterValue
-    .split(',')
-    .filter(p => p.length > 0 && p !== prefix)
-    .join(',');
+//
+// The HTML in courses.aalto (or at least the course codes) has non-UTF-8
+// encoding. This is a hack to fix that
+//
+const fixStrangeEncoding = (str: string | null | undefined) => {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const bytes = encoder.encode(`${str}`);
+  return decoder.decode(bytes.slice(1, bytes.length - 1));
+};
 
 //
 // Query the document for the wrapper element of the existing filters.
@@ -104,6 +121,10 @@ const getFilterContainer = () =>
     rej();
   });
 
+//
+// The extension adds a 'Period' filter but a 'Periods' filter
+// (with no functionality) exists. Remove it
+//
 const removeDefaultPeriodsFilter = () => {
   const collection = document.getElementsByTagName('h3');
   let i = 0;
@@ -118,6 +139,37 @@ const removeDefaultPeriodsFilter = () => {
 };
 
 //
+// The listed courses don't display data for which period the course
+// is held in. This adds that data to the listing
+//
+const injectPeriodElements = async () => {
+  const { coursePeriods } = (await get('coursePeriods')) as {
+    coursePeriods: Record<string, string>;
+  };
+
+  const collection = document.getElementsByClassName('list-item');
+  let i = 0;
+
+  while (collection.item(i) !== null) {
+    const courseCode = fixStrangeEncoding(
+      collection.item(i)?.childNodes[1]?.textContent
+    );
+    const period = coursePeriods[courseCode];
+
+    if (period !== undefined) {
+      const span = el('span');
+      span.id = courseCode;
+      span.textContent = `Period: ${period}`;
+      span.className = 'period-tag';
+      if (!document.getElementById(courseCode)) {
+        collection.item(i)?.appendChild(span);
+      }
+    }
+    i++;
+  }
+};
+
+//
 // Create <ul> element of multiselect togglable filter options
 //
 const createMultiselectList = async (
@@ -126,7 +178,9 @@ const createMultiselectList = async (
 ) => {
   const negFilterKey = `not-${filterKey}`;
   const ul = el('ul');
-  ul.className = 'multiselect';
+  ul.className = `multiselect${
+    filterKey === 'prefixes' ? ' filter-prefixes' : ''
+  }`;
   const { [filterKey]: initPos, [negFilterKey]: initNeg } = await get([
     filterKey,
     negFilterKey,
@@ -147,38 +201,39 @@ const createMultiselectList = async (
     li.className = 'multiselect-item';
     span.className = 'checkbox';
 
-    if (initPos?.includes(option)) {
+    if ((initPos || []).includes(option)) {
       span.appendChild(plus);
       span.style.backgroundColor = '#202020';
     }
-    if (initNeg?.includes(option)) {
+    if ((initNeg || []).includes(option)) {
       span.appendChild(minus);
       span.style.backgroundColor = '#202020';
     }
 
     li.addEventListener('click', async () => {
-      const { [filterKey]: pos, [negFilterKey]: neg } = await get([
+      const { [filterKey]: pos = [], [negFilterKey]: neg = [] } = await get([
         filterKey,
         negFilterKey,
       ]);
 
-      if (pos?.includes(option)) {
-        set({
-          [negFilterKey]: `${neg ? neg + ',' : ''}${option}`,
-          [filterKey]: removePrefix(pos, option),
+      if (pos.includes(option)) {
+        await set({
+          [negFilterKey]: [...neg, option],
+          [filterKey]: pos.filter((v: string) => v !== option),
         });
         span.removeChild(plus);
         span.appendChild(minus);
         span.style.backgroundColor = '#202020';
-      } else if (neg?.includes(option)) {
-        set({ [negFilterKey]: removePrefix(neg, option) });
+      } else if (neg.includes(option)) {
+        await set({ [negFilterKey]: neg.filter((v: string) => v !== option) });
         span.removeChild(minus);
         span.style.backgroundColor = 'white';
       } else {
-        set({ [filterKey]: `${pos ? pos + ',' : ''}${option}` });
+        await set({ [filterKey]: [...pos, option] });
         span.appendChild(plus);
         span.style.backgroundColor = '#202020';
       }
+      await set({ dirty: true });
     });
 
     input.setAttribute('c-aaltoinput_radiolist', '');
@@ -194,7 +249,7 @@ const createMultiselectList = async (
   return ul;
 };
 
-const createFilterBox = (label: string) => (child: HTMLElement) => {
+const createFilterBox = (label: string, child: HTMLElement) => {
   const [wrapper, ...children] = [
     el('div'),
     el('fieldset'),
@@ -216,31 +271,24 @@ const createFilterBox = (label: string) => (child: HTMLElement) => {
 
   return wrapper;
 };
-2;
-const configByFilter: Record<TFilterName, TFilterConfig> = {
-  ['Course prefix']: {
-    initialValue: '',
+
+const configByFilter: Record<TFilterKey, TFilterConfig> = {
+  prefixes: {
+    label: 'Course prefix',
     initChild: () => createMultiselectList('prefixes', PREFIX_VALUES),
   },
-  ['Period']: {
-    initialValue: '',
+  periods: {
+    label: 'Period',
     initChild: () => createMultiselectList('periods', PERIOD_VALUES),
   },
 };
 
-class Filter {
-  value: string;
-  node: HTMLElement;
-
-  constructor(label: TFilterName, filterComponent: HTMLElement) {
-    this.value = configByFilter[label].initialValue;
-
-    this.node = createFilterBox(label)(filterComponent);
-  }
-}
-
 // ---------------------
 const init = () => {
+  set({ dirty: false });
+  injectPeriodElements();
+  removeDefaultPeriodsFilter();
+
   const reloadButton = el('button');
   reloadButton.id = 'reloadFiltersButton';
   reloadButton.className = 'reload';
@@ -251,23 +299,34 @@ const init = () => {
     document.body.appendChild(reloadButton);
   }
 
+  const courseListContainer = document.querySelector('.listing');
+
+  if (courseListContainer) {
+    new MutationObserver(() => {
+      injectPeriodElements();
+    }).observe(courseListContainer, { childList: true });
+  }
+
   browser.storage.onChanged.addListener(changes => {
-    if (FILTER_KEYS.some(key => changes[key] !== undefined)) {
+    if (changes.dirty?.newValue) {
       reloadButton.style.display = 'initial';
     }
     if (changes.coursesLoaded?.newValue) {
-      removeDefaultPeriodsFilter();
       set({ coursesLoaded: false });
+
+      removeDefaultPeriodsFilter();
+      injectPeriodElements();
     }
   });
 
   Promise.all(
-    FILTER_LABELS.map(
-      async label => new Filter(label, await configByFilter[label].initChild())
-    )
+    FILTER_KEYS.map(async key => {
+      const { label, initChild } = configByFilter[key];
+      return createFilterBox(label, await initChild());
+    })
   ).then(async filters => {
     const filterContainer = await getFilterContainer();
-    filters.map(async ({ node }) => {
+    filters.map(async node => {
       if (!document.getElementById(node.id)) filterContainer.prepend(node);
     });
   });
