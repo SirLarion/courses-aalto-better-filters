@@ -24,26 +24,28 @@ filtration of the courses.
 
 ### Building
 
-The `build` script simply calls TSC so you should be able to run it with any
-npm-like software.
+This package is configured to use [Bun](https://bun.sh).
 
 ```
-npm install
-npm run build
+bun install
+bun run build
 ```
+
+This compiles the TS files to JS and copies other files to the `build` folder. The
+`manifest.json` in `build` can then be used as the start point of the extension.
 
 ### Running locally
 
 Get familiarized with [the WebExtensions docs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
 
 ```
-npm run dev
+bun run dev
 ```
 
 to build compile JS files and watch for modifications.
 
 ```
-npm run client
+bun run client
 ```
 
 to run [web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)

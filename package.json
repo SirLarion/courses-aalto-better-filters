@@ -1,21 +1,23 @@
 {
   "name": "courses-aalto-better-filters",
-  "module": "better-filters.ts",
-  "type": "module",
-  "description": "A browser extension to improve the UX of Aalto University course search.",
+  "author": "Miska Tammenpää <miska@tammenpaa.com>",
   "repository": "https://github.com/SirLarion/courses-aalto-better-filters",
-  "author": "Miska Tammenpää <miska@tammenpaa.com> (https://miska.tammenpaa.com)",
-  "license": "GPLv3",
-  "scripts": {
-    "client": "web-ext run --firefox=/usr/bin/firefox-developer-edition",
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -r courses-aalto-better-filters.zip build filters.css manifest.json LICENSE *.svg"
-  },
+  "module": "better-filters.ts",
   "devDependencies": {
     "@types/webextension-polyfill": "^0.10.5",
     "typescript": "^5.2.2",
     "web-ext": "^7.8.0",
     "webextension-polyfill": "^0.10.0"
-  }
+  },
+  "description": "A browser extension to improve the UX of Aalto University course search.",
+  "license": "GPLv3",
+  "scripts": {
+    "client": "cd build && web-ext run --firefox=/usr/bin/firefox-developer-edition",
+    "build:ts": "bun build src/*.ts --outdir build",
+    "build:copy": "cp src/*.svg build && cp src/manifest.json build && cp src/filters.css build",
+    "build": "bun run build:ts && bun run build:copy",
+    "dev": "bun run build:ts --watch",
+    "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -r courses-aalto-better-filters.zip build filters.css manifest.json LICENSE *.svg"
+  },
+  "type": "module"
 }

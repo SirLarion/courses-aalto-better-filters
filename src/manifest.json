@@ -22,12 +22,12 @@
   ],
   "host_permissions": ["https://courses.aalto.fi/s/sfsites/*"],
   "background": {
-    "scripts": ["build/filter-request.js"]
+    "scripts": ["filter-request.js"]
   },
   "content_scripts": [
     {
       "matches": ["https://courses.aalto.fi/s/*"],
-      "js": ["build/better-filters.js"],
+      "js": ["better-filters.js"],
       "css": ["filters.css"],
       "all_frames": true
     }
