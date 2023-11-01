@@ -51,3 +51,11 @@ bun run client
 to run [web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
 with Firefox developer edition. You can also run the extension in different ways as shown in [this
 guide](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension).
+
+The extension only has functionality in https://courses.aalto.fi. Once
+navigating there, the extension needs to be given permissions to run. This can
+be done by opening the extensions menu, opening the settings for the extension,
+and selecting "_Always allow on courses.aalto.fi_".
+
+<img src="permissions.gif" alt="GIF displaying how to give permissions to the
+extension" />
