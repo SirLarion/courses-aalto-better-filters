@@ -14,10 +14,10 @@
   "scripts": {
     "client": "cd build && web-ext run --firefox=/usr/bin/firefox-developer-edition",
     "build:ts": "bun build src/*.ts --outdir build",
-    "build:copy": "cp src/*.svg build && cp src/manifest.json build && cp src/filters.css build",
+    "build:copy": "cp src/*.svg build && cp src/manifest.json build && cp src/filters.css build && cp LICENSE build",
     "build": "bun run build:ts && bun run build:copy",
     "dev": "bun run build:ts --watch",
-    "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -r courses-aalto-better-filters.zip build filters.css manifest.json LICENSE *.svg"
+    "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -jr courses-aalto-better-filters.zip build"
   },
   "type": "module"
 }
