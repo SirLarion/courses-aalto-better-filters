@@ -52,6 +52,13 @@ to run [web-ext](https://extensionworkshop.com/documentation/develop/getting-sta
 with Firefox developer edition. You can also run the extension in different ways as shown in [this
 guide](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension).
 
+You can also use `adb` with `web-ext` to run the extension on Firefox for
+Android.
+
+```
+bun run client:mobile
+```
+
 The extension only has functionality in https://courses.aalto.fi. Once
 navigating there, the extension needs to be given permissions to run. This can
 be done by opening the extensions menu, opening the settings for the extension,

@@ -92,36 +92,6 @@ const fixStrangeEncoding = (str: string | null | undefined) => {
 };
 
 //
-// Query the document for the wrapper element of the existing filters.
-// This happens on load so we need to wait for the DOM to be constructed
-//
-const getFilterContainer = () =>
-  new Promise<Element>(async (res, rej) => {
-    let container = document
-      .getElementsByClassName('filters-container')
-      .item(0);
-
-    if (container === null) {
-      let i = 0;
-      while (i < 100) {
-        container = document
-          .getElementsByClassName('filters-container')
-          .item(0);
-
-        await new Promise(r => setTimeout(r, 5));
-
-        if (container !== null) {
-          res(container);
-        }
-        i++;
-      }
-    } else {
-      res(container);
-    }
-    rej();
-  });
-
-//
 // The extension adds a 'Period' filter but a 'Periods' filter
 // (with no functionality) exists. Remove it
 //
@@ -289,14 +259,16 @@ const init = () => {
   injectPeriodElements();
   removeDefaultPeriodsFilter();
 
+  const buttonWrapper = el('div');
   const reloadButton = el('button');
-  reloadButton.id = 'reloadFiltersButton';
-  reloadButton.className = 'reload';
+
+  buttonWrapper.id = 'reloadFiltersButton';
   reloadButton.textContent = 'APPLY FILTERS';
   reloadButton.addEventListener('click', () => window.location.reload());
+  buttonWrapper.appendChild(reloadButton);
 
   if (!document.getElementById('reloadFiltersButton')) {
-    document.body.appendChild(reloadButton);
+    document.querySelector('.filters-container')?.appendChild(buttonWrapper);
   }
 
   const courseListContainer = document.querySelector('.listing');
@@ -309,7 +281,7 @@ const init = () => {
 
   browser.storage.onChanged.addListener(changes => {
     if (changes.dirty?.newValue) {
-      reloadButton.style.display = 'initial';
+      buttonWrapper.style.display = 'flex';
     }
     if (changes.coursesLoaded?.newValue) {
       set({ coursesLoaded: false });
@@ -325,9 +297,10 @@ const init = () => {
       return createFilterBox(label, await initChild());
     })
   ).then(async filters => {
-    const filterContainer = await getFilterContainer();
+    const mobileHeader = document.querySelector('div.filters-mobile-header');
     filters.map(async node => {
-      if (!document.getElementById(node.id)) filterContainer.prepend(node);
+      if (!document.getElementById(node.id) && mobileHeader)
+        mobileHeader.insertAdjacentElement('afterend', node);
     });
   });
 };

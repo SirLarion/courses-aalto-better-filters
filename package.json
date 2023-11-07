@@ -5,6 +5,7 @@
   "module": "better-filters.ts",
   "devDependencies": {
     "@types/webextension-polyfill": "^0.10.5",
+    "bun-types": "^1.0.9",
     "typescript": "^5.2.2",
     "web-ext": "^7.8.0",
     "webextension-polyfill": "^0.10.0"
@@ -13,8 +14,9 @@
   "license": "GPLv3",
   "scripts": {
     "client": "cd build && web-ext run --firefox=/usr/bin/firefox-developer-edition",
+    "client:mobile": "ANDROID=`bun run scripts/get-adb-device.ts` && cd build && web-ext run -t firefox-android --adb-device $ANDROID --firefox-apk org.mozilla.fenix",
     "build:ts": "bun build src/*.ts --outdir build",
-    "build:copy": "cp src/*.svg build && cp src/manifest.json build && cp src/filters.css build && cp LICENSE build",
+    "build:copy": "cp src/*.svg build && cp src/filters.css build && cp LICENSE build && cp src/manifest.json build",
     "build": "bun run build:ts && bun run build:copy",
     "dev": "bun run build:ts --watch",
     "package": "(rm courses-aalto-better-filters.zip || true) && /usr/bin/zip -jr courses-aalto-better-filters.zip build"

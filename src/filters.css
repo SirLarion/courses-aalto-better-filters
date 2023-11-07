@@ -4,6 +4,14 @@
   grid-template-columns: auto auto;
 }
 
+@media (max-width: 899px) {
+  .multiselect {
+    width: 80vw;
+    display: grid;
+    grid-template-columns: auto auto auto;
+  }
+}
+
 .filter-prefixes {
   max-height: 15rem;
   overflow-y: scroll;
@@ -38,11 +46,16 @@
   font-size: 1rem;
 }
 
-button.reload {
+#reloadFiltersButton {
+  width: 100%;
   position: sticky;
   display: none;
-  bottom: 5rem;
-  left: 5rem;
+  justify-content: center;
+  bottom: 0;
+}
+
+#reloadFiltersButton > button {
+  margin-bottom: 5rem;
   padding: 1rem 4rem;
   font-size: 1.5rem;
   border: 0.3rem solid #202020;
@@ -54,7 +67,15 @@ button.reload {
     background-color 150ms ease-in-out;
 }
 
-button.reload:hover {
+@media (max-width: 899px) {
+  #reloadFiltersButton > button {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+#reloadFiltersButton > button:hover {
   background-color: #202020;
   color: white;
 }
