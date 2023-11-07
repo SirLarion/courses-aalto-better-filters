@@ -53,7 +53,7 @@ with Firefox developer edition. You can also run the extension in different ways
 guide](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension).
 
 You can also use `adb` with `web-ext` to run the extension on Firefox for
-Android.
+Android. See more [here](https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/).
 
 ```
 bun run client:mobile

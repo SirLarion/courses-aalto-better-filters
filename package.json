@@ -1,6 +1,7 @@
 {
   "name": "courses-aalto-better-filters",
   "author": "Miska Tammenpää <miska@tammenpaa.com>",
+  "version": 1.2.0,
   "repository": "https://github.com/SirLarion/courses-aalto-better-filters",
   "module": "better-filters.ts",
   "devDependencies": {
