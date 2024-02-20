@@ -24,7 +24,8 @@ const FILTER_KEYS = ['periods', 'prefixes'] as const;
 
 const PERIOD_VALUES = ['I', 'II', 'III', 'IV', 'V', 'Summer'] as const;
 
-// Ordered by the amount of courses that there are under each prefix
+// Ordered by the amount of courses that there are under each prefix.
+// Do not change this order!
 const PREFIX_VALUES = [
   'ELEC',
   'CHEM',
@@ -112,18 +113,16 @@ const removeDefaultPeriodsFilter = () => {
 // The listed courses don't display data for which period the course
 // is held in. This adds that data to the listing
 //
-const injectPeriodElements = async () => {
+const modifyCourseListItems = async () => {
   const { coursePeriods } = (await get('coursePeriods')) as {
     coursePeriods: Record<string, string>;
   };
 
-  const collection = document.getElementsByClassName('list-item');
-  let i = 0;
+  const collection =
+    document.querySelectorAll<HTMLAnchorElement>('a.list-item');
 
-  while (collection.item(i) !== null) {
-    const courseCode = fixStrangeEncoding(
-      collection.item(i)?.childNodes[1]?.textContent
-    );
+  collection.forEach(item => {
+    const courseCode = fixStrangeEncoding(item.childNodes[1]?.textContent);
     const period = coursePeriods[courseCode];
 
     if (period !== undefined) {
@@ -132,11 +131,10 @@ const injectPeriodElements = async () => {
       span.textContent = `Period: ${period}`;
       span.className = 'period-tag';
       if (!document.getElementById(courseCode)) {
-        collection.item(i)?.appendChild(span);
+        item.appendChild(span);
       }
     }
-    i++;
-  }
+  });
 };
 
 //
@@ -256,7 +254,7 @@ const configByFilter: Record<TFilterKey, TFilterConfig> = {
 // ---------------------
 const init = () => {
   set({ dirty: false });
-  injectPeriodElements();
+  modifyCourseListItems();
   removeDefaultPeriodsFilter();
 
   const buttonWrapper = el('div');
@@ -275,7 +273,7 @@ const init = () => {
 
   if (courseListContainer) {
     new MutationObserver(() => {
-      injectPeriodElements();
+      modifyCourseListItems();
     }).observe(courseListContainer, { childList: true });
   }
 
@@ -287,7 +285,7 @@ const init = () => {
       set({ coursesLoaded: false });
 
       removeDefaultPeriodsFilter();
-      injectPeriodElements();
+      modifyCourseListItems();
     }
   });
 

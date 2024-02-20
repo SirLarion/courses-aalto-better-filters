@@ -13,8 +13,8 @@
   "description": "A browser extension to improve the UX of Aalto University course search.",
   "license": "GPLv3",
   "scripts": {
-    "client": "cd build && web-ext run --firefox=/usr/bin/firefox-developer-edition",
-    "client:mobile": "ANDROID=`bun run scripts/get-adb-device.ts` && cd build && web-ext run -t firefox-android --adb-device $ANDROID --firefox-apk org.mozilla.fenix",
+    "client": "web-ext run --source-dir=build --firefox=/usr/bin/firefox-developer-edition",
+    "client:mobile": "ANDROID=`bun run scripts/get-adb-device.ts` && web-ext run -t firefox-android --source-dir=build --adb-device $ANDROID --firefox-apk org.mozilla.fenix",
     "build:ts": "bun build src/*.ts --outdir build",
     "build:copy": "cp src/*.svg build && cp src/filters.css build && cp LICENSE build && cp src/manifest.json build",
     "build": "bun run build:ts && bun run build:copy",
